@@ -1,2 +1,63 @@
+# ==============================================================================
+# OS & SYSTEM HIDDEN FILES (macOS, Linux, Windows)
+# ==============================================================================
+.*
+!.gitignore
+._*
 .DS_Store
-*/.DS_Store
+.DS_Store?
+.AppleDouble
+.LSOverride
+.Spotlight-V100
+.Trashes
+desktop.ini
+Thumbs.db
+ehthumbs.db
+
+# ==============================================================================
+# EDITORS & IDE HIDDEN DIRECTORIES / BACKUPS
+# ==============================================================================
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+*~
+*.bak
+
+# ==============================================================================
+# SECRETS, KEYS, CREDENTIALS & SENSITIVE CONFIGURATIONS
+# ==============================================================================
+tg.conf
+*.conf
+*.env
+.env*
+*.key
+*.pem
+*.token
+*.secret
+*.priv
+credentials*
+secrets*
+id_rsa*
+id_ed25519*
+*.pfx
+*.p12
+
+# ==============================================================================
+# LOGS & TEMPORARY RUNTIME ARTIFACTS
+# ==============================================================================
+*.log
+upgrade.log
+screenlog.*
+*.tmp
+
+# ==============================================================================
+# CHAIN BINARIES & EXECUTABLES (Do not push large binaries to Git)
+# ==============================================================================
+gaiad
+hippod
+osmosisd
+*.bin
+*.exe
