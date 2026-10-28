@@ -53,10 +53,10 @@ Bạn có thể chỉnh sửa trực tiếp các biến mặc định ở đầu
 | `PROPOSAL_URL` | `https://cosmos-api.polkachu.com/...` | API kiểm tra trạng thái proposal |
 
 ### Cấu hình thông báo Telegram (`tg.conf`)
-Tạo file `tg.conf` nằm cùng thư mục với script hoặc tại `/root/auto-upgrade/tg.conf` (file này đã được đưa vào `.gitignore` để tránh lộ token bí mật):
+Tạo file `tg.conf` nằm cùng thư mục với script hoặc tại `/root/auto-upgrade/tg.conf` (file này đã được đưa vào `.gitignore` để tránh lộ token bí mật). Hỗ trợ cả 2 chuẩn đặt tên biến (`TELEGRAM_BOT_TOKEN` / `TELEGRAM_CHAT_ID` hoặc `BOT_TOKEN` / `CHAT_ID_ALARM`):
 ```bash
-BOT_TOKEN="123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ"
-CHAT_ID_ALARM="-1001234567890"
+TELEGRAM_BOT_TOKEN="123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ"
+TELEGRAM_CHAT_ID="-1001234567890"
 ```
 
 ---
@@ -119,6 +119,15 @@ Sau khi chạy, script sẽ tự detach ra một màn hình ảo `screen`. Bạn
 ## 📝 Changelog
 
 Tất cả các thay đổi quan trọng của bộ script **Auto-Upgrade Cosmos-Based Chains** được ghi lại dưới đây (tuân theo [Semantic Versioning](https://semver.org/)):
+
+### [1.2.1] - 2026-10-28
+
+#### Added
+- Hỗ trợ đồng thời chuẩn biến môi trường `TELEGRAM_BOT_TOKEN` / `TELEGRAM_CHAT_ID` và `BOT_TOKEN` / `CHAT_ID_ALARM` trong `tg.conf`.
+- Thêm bước kiểm tra cấu hình Telegram (`TELEGRAM CHECK`) trước khi khởi chạy phiên `screen` và truyền biến môi trường Telegram trực tiếp vào `screen` session.
+- Bổ sung kiểm tra phản hồi JSON từ Telegram API (`.ok == true`) trong hàm `send_telegram` và hiển thị cảnh báo rõ ràng nếu gửi tin nhắn thất bại.
+
+---
 
 ### [1.2.0] - 2026-10-26
 

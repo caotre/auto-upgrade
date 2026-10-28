@@ -46,33 +46,53 @@ print_line() {
 # TELEGRAM
 # ============================================================
 
-BOT_TOKEN="${BOT_TOKEN:-}"
-CHAT_ID_ALARM="${CHAT_ID_ALARM:-}"
+TELEGRAM_BOT_TOKEN="${TELEGRAM_BOT_TOKEN:-}"
+TELEGRAM_CHAT_ID="${TELEGRAM_CHAT_ID:-}"
+BOT_TOKEN="${BOT_TOKEN:-${TELEGRAM_BOT_TOKEN}}"
+CHAT_ID_ALARM="${CHAT_ID_ALARM:-${TELEGRAM_CHAT_ID}}"
 
 load_telegram() {
+    local script_dir
+    script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
     if [[ -f /root/auto-upgrade/tg.conf ]]; then
         # shellcheck disable=SC1091
         source /root/auto-upgrade/tg.conf
     elif [[ -f "${PROJECT_HOME:-$HOME}/auto-upgrade/tg.conf" ]]; then
         # shellcheck disable=SC1091
         source "${PROJECT_HOME:-$HOME}/auto-upgrade/tg.conf"
-    elif [[ -f "$(dirname "$0")/tg.conf" ]]; then
+    elif [[ -f "${script_dir}/tg.conf" ]]; then
         # shellcheck disable=SC1091
-        source "$(dirname "$0")/tg.conf"
+        source "${script_dir}/tg.conf"
     fi
+
+    BOT_TOKEN="${TELEGRAM_BOT_TOKEN:-${BOT_TOKEN:-}}"
+    CHAT_ID_ALARM="${TELEGRAM_CHAT_ID:-${CHAT_ID_ALARM:-}}"
 }
 
 send_telegram() {
     local message="$1"
+    local response
 
     if [[ -n "${BOT_TOKEN:-}" && -n "${CHAT_ID_ALARM:-}" ]]; then
-        curl -fsS \
-            --max-time 10 \
-            -X POST \
-            "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
-            -d "chat_id=${CHAT_ID_ALARM}" \
-            --data-urlencode "text=${message}" \
-            >/dev/null 2>&1 || true
+        response="$(
+            curl -sS \
+                --max-time 10 \
+                -X POST \
+                "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
+                -d "chat_id=${CHAT_ID_ALARM}" \
+                --data-urlencode "text=${message}" \
+                2>&1
+        )" || {
+            echo -e "${YELLOW}WARNING:${NC} Failed to send Telegram notification: ${response}"
+            return 0
+        }
+
+        if ! echo "$response" | jq -e '.ok == true' >/dev/null 2>&1; then
+            local err_desc
+            err_desc="$(echo "$response" | jq -r '.description // "unknown error"' 2>/dev/null || echo "$response")"
+            echo -e "${YELLOW}WARNING:${NC} Telegram API returned error: ${err_desc}"
+        fi
     fi
 }
 
@@ -752,6 +772,22 @@ fi
 
 
 # ============================================================
+# TELEGRAM CHECK
+# ============================================================
+
+load_telegram
+
+if [[ -n "${BOT_TOKEN:-}" && -n "${CHAT_ID_ALARM:-}" ]]; then
+    echo -e "${CYAN}Checking Telegram configuration...${NC}"
+    echo -e "${GREEN}Telegram OK${NC} (Chat ID: ${CHAT_ID_ALARM})"
+    echo
+else
+    echo -e "${YELLOW}WARNING:${NC} Telegram notification is not configured (tg.conf missing or empty)."
+    echo
+fi
+
+
+# ============================================================
 # START WATCHER
 # ============================================================
 
@@ -768,6 +804,10 @@ if (( EUID == 0 )); then
         UPGRADE_HEIGHT="$UPGRADE_HEIGHT" \
         PROPOSAL_URL="$PROPOSAL_URL" \
         SCREEN_NAME="$SCREEN_NAME" \
+        BOT_TOKEN="${BOT_TOKEN:-}" \
+        CHAT_ID_ALARM="${CHAT_ID_ALARM:-}" \
+        TELEGRAM_BOT_TOKEN="${TELEGRAM_BOT_TOKEN:-}" \
+        TELEGRAM_CHAT_ID="${TELEGRAM_CHAT_ID:-}" \
         bash "$SCRIPT_PATH" --watcher
 else
     screen -dmS "$SCREEN_NAME" \
@@ -780,6 +820,10 @@ else
         UPGRADE_HEIGHT="$UPGRADE_HEIGHT" \
         PROPOSAL_URL="$PROPOSAL_URL" \
         SCREEN_NAME="$SCREEN_NAME" \
+        BOT_TOKEN="${BOT_TOKEN:-}" \
+        CHAT_ID_ALARM="${CHAT_ID_ALARM:-}" \
+        TELEGRAM_BOT_TOKEN="${TELEGRAM_BOT_TOKEN:-}" \
+        TELEGRAM_CHAT_ID="${TELEGRAM_CHAT_ID:-}" \
         bash "$SCRIPT_PATH" --watcher
 fi
 
